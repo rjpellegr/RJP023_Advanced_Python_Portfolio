@@ -600,3 +600,6 @@ print(translate(my_string))
     GCTGTTATGGGTCGTTGGAAGGGTGGTCGTGCTGCTGGTTAG
     AVMGRWKGGRAAG*
 
+## Sequence Annotation
+
+An overview of some methods used to identify and annotate gene and protein sequences.
