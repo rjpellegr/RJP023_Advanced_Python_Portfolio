@@ -602,4 +602,4 @@ print(translate(my_string))
 
 ## Sequence Annotation
 
-An overview of some methods used to identify and annotate gene and protein sequences.
+An introduction to Biopython's sequence annotation objects.
