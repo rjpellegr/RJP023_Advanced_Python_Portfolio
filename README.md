@@ -3104,3 +3104,737 @@ aligner.score(target, reverse_complement(query), strand = "+")
 
     -2.0
 
+
+## OpenCV
+A look at the Python computer visualization suite, OpenCV.
+
+```python
+#import necessary libraries/functions
+import numpy as np
+import cv2
+import matplotlib.pyplot as plt
+%matplotlib inline
+```
+
+
+```python
+#load the image being used
+img = cv2.imread("mushrum.jpg")
+```
+
+
+```python
+#we can check its type - it's a NumPy array
+type(img)
+```
+
+
+
+
+    numpy.ndarray
+
+
+
+
+```python
+#note that an incorrect path does not return an error
+img_wrong = cv2.imread("wrong/path/doesnot/abcdegh.jpg")
+```
+
+
+```python
+#but if we check its type...
+type(img_wrong)
+```
+
+
+
+
+    NoneType
+
+
+
+
+```python
+#we can display the image now
+plt.imshow(img)
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7fe114e4cb50>
+
+
+
+
+![output_5_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/86175bbe-2014-417c-9101-043dd914f4ab)
+
+
+
+
+```python
+#the color channels are out of order - most images use an RGB triplet palette in that order, but OpenCV interprets channel values in the order BGR instead
+#we'll need to reorder the channels
+fix_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+plt.imshow(fix_img)
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7fe11457d5d0>
+
+
+
+
+![output_6_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/01ec1185-7b24-4bc1-9905-c096c570f30b)
+
+
+
+
+```python
+#we can display the image's resolution and number of color channels with the shape method
+fix_img.shape
+```
+
+
+
+
+    (539, 512, 3)
+
+
+
+
+```python
+#we can also convert it to a simple monochrome channel
+img_gray = cv2.imread("mushrum.jpg", cv2.IMREAD_GRAYSCALE)
+plt.imshow(img_gray)
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7fe1144e7d50>
+
+
+
+
+![output_8_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/39f8ab18-8907-4dcb-b65c-3717e53c4889)
+
+
+
+
+```python
+#again, the first channel - in this case, the only channel - is interpreted as blue
+#we can fix this by specifying a colormap
+plt.imshow(img_gray, cmap = "gray")
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7fe11423f450>
+
+
+
+
+![output_9_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/d7db3c4d-bc08-490a-b11d-592eea8e9cb4)
+
+
+
+
+```python
+#the image can be resized
+new_img = cv2.resize(fix_img, (1000, 400))
+plt.imshow(new_img)
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7fe114220710>
+
+
+
+![output_10_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/f710e129-e413-4094-b951-253f2e15ce82)
+
+
+
+```python
+#we can also specify an aspect ratio instead
+w_ratio = 0.5
+h_ratio = 0.5
+new_img = cv2.resize(fix_img, (0,0), fix_img, w_ratio, h_ratio)
+plt.imshow(new_img)
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7fe1141798d0>
+
+
+
+
+![output_11_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/600e389b-8f52-48fa-b4fd-f683fa880759)
+
+
+
+
+```python
+#here we can see that the image has been scaled down by half while still maintaining its original aspect ratio
+new_img.shape
+```
+
+
+
+
+    (270, 256, 3)
+
+
+
+
+```python
+#we can flip the image along the horizontal axis
+flip_img = cv2.flip(fix_img, 0)
+plt.imshow(flip_img)
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7fe114160810>
+
+
+
+
+![output_13_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/96423cd8-8b2d-47a0-8fb8-268df811b81a)
+
+
+
+
+```python
+#the vertical axis
+flip_img2 = cv2.flip(fix_img, 1)
+plt.imshow(flip_img2)
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7fe1140c7990>
+
+
+
+
+![output_14_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/a85c2832-42b9-4a22-b251-712a3927306a)
+
+
+
+
+```python
+#or along both axes
+flip_img2 = cv2.flip(fix_img, -1)
+plt.imshow(flip_img2)
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7fe11402eb10>
+
+
+
+
+![output_15_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/d89020fe-3e53-44ee-80da-8f54bceb89ef)
+
+
+
+
+```python
+#and we can export as a new image
+#note that it does not save the color correction, only the new orientation
+cv2.imwrite('mushrum_fixed_image.jpg', flip_img)
+```
+
+
+
+
+    True
+
+
+
+
+```python
+#let's mess with colors some more
+#first we'll import the original image
+img = cv2.imread("mushrum.jpg")
+plt.imshow(img)
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7fe10cfeec10>
+
+
+
+
+![output_17_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/deb5cf3b-af4a-4b8c-be45-5564a5eba9ad)
+
+
+
+
+```python
+#and fix the colors
+img1 = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+plt.imshow(img1)
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7fe10cf53d90>
+
+
+
+
+![output_18_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/757cd2e3-8e00-44e2-b79d-087918492525)
+
+
+
+
+```python
+#color values are stored in RGB format for this image, but we can convert it to HSV instead
+img2 = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+plt.imshow(img2)
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7fe10cebaed0>
+
+
+
+
+![output_19_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/37472fae-ebb3-488c-b7cc-4bf88e77b386)
+
+
+
+
+```python
+#or HSL
+img3 = cv2.cvtColor(img, cv2.COLOR_BGR2HLS)
+plt.imshow(img3)
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7fe10ceae0d0>
+
+
+
+
+![output_20_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/dbca6a9c-f40b-4cf0-bc00-0400dd047dd7)
+
+
+
+
+```python
+#let's look at alpha compositing
+#we'll use two images this time
+img1 = cv2.imread('deeprock.jpg')
+img2 = cv2.imread('mushrum.jpg')
+```
+
+
+```python
+plt.imshow(img1)
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7fe10c756fd0>
+
+
+
+
+![output_22_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/68830841-2813-43d3-85f8-84824b369d99)
+
+
+
+```python
+plt.imshow(img2)
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7fe10c9a2550>
+
+
+
+
+![output_23_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/b4791d02-8a2c-4ca6-afa8-fb5b1093f52d)
+
+
+
+
+```python
+#convert colors first
+#this isn't really necessary for the img1 I chose since it's just black and white, but I might as well to follow along with the course
+img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2RGB)
+img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2RGB)
+```
+
+
+```python
+plt.imshow(img1)
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7fe10ca4fed0>
+
+
+
+
+![output_25_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/0e402df7-7c14-4cff-8257-618216bd1d7e)
+
+
+
+
+```python
+plt.imshow(img2)
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7fe10c9e2910>
+
+
+
+
+![output_26_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/d86034e7-0b52-4f06-a3cc-e696722c763a)
+
+
+
+
+```python
+#we'll set them both to the same resolution
+img1 = cv2.resize(img1, (1200, 1200))
+img2 = cv2.resize(img2, (1200, 1200))
+```
+
+
+```python
+#to set individual transparencies, we adjust the alpha channels for the two component images
+#don't let the names confuse you - the alpha component and the beta component both have alpha channels (which encode transparency information)
+alpha = 0.5
+beta = 0.5
+```
+
+
+```python
+#then we can composite the two images together
+#no gamma correction is being applied
+blended = cv2.addWeighted(img1, alpha, img2, beta, gamma = 0)
+plt.imshow(blended)
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7fe10c2b2e50>
+
+
+
+
+![output_29_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/2d384d2c-951e-49a4-84a9-2a88dbf9ec2c)
+
+
+
+
+```python
+#we can play with the transparencies
+#alpha channel values are between 0 and 1
+alpha = 0.8
+beta = 0.2
+blended1 = cv2.addWeighted(img1, alpha, img2, beta, gamma = 0)
+plt.imshow(blended1)
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7fe10c21c250>
+
+
+
+
+![output_30_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/9644634c-fd6c-4a7d-bab5-dcc08b33a386)
+
+
+
+
+```python
+#we can adjust the size and position of the individual component images
+#first let's reload and correct the original images
+img1 = cv2.imread('deeprock.jpg')
+img2 = cv2.imread('mushrum.jpg')
+
+img1 = cv2.cvtColor(img1, cv2.COLOR_BGR2RGB)
+img2 = cv2.cvtColor(img2, cv2.COLOR_BGR2RGB)
+```
+
+
+```python
+#then we'll resize just img1
+img1 = cv2.resize(img1, (200,200))
+```
+
+
+```python
+#let's relabel the images for readability purposes
+large_img = img2
+small_img = img1
+```
+
+
+```python
+#now we can apply an offset
+x_offset = 0
+y_offset = 0
+x_end = x_offset + small_img.shape[1]
+y_end = y_offset + small_img.shape[0]
+#and composite
+large_img[y_offset:y_end, x_offset:x_end] = small_img
+plt.imshow(large_img)
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7fe10c20fc90>
+
+
+
+![output_34_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/61bc9c9d-8b57-4f10-b580-c41fa6486553)
+
+
+
+
+```python
+#now let's look at setting thresholds and processing images
+#we'll use crossword.jpg and rainbow.jpg - link below
+#https://github.com/worklifesg/Python-for-Computer-Vision-with-OpenCV-and-Deep-Learning/tree/main/3.%20Image%20Processing
+```
+
+
+```python
+img = cv2.imread('rainbow.jpg')
+plt.imshow(img)
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7fe10c6956d0>
+
+
+
+
+![output_36_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/f3f8fb96-c203-4a49-a474-5646912438b5)
+
+
+
+
+```python
+#let's start with thresholding - for example, cancelling out unwanted background colors
+#first we'll desaturate it
+img = cv2.imread('rainbow.jpg', 0)
+plt.imshow(img, cmap = 'gray')
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7fe10c677350>
+
+
+
+![output_37_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/7d111cdb-188b-44c4-99b2-234a96ad4fb0)
+
+
+
+
+```python
+#we set the threshold to 127 since there are a total of 255 color values in the image
+#any value below 127 will be one color, whereas any value above 127 will be another
+ret1, thresh1 = cv2.threshold(img, 127, 255, cv2.THRESH_BINARY)
+plt.imshow(thresh1, cmap = "gray")
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7fe10c5d90d0>
+
+
+
+
+![output_38_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/108a2002-3980-494b-a1d2-41c002654963)
+
+
+
+
+```python
+#we can invert these limits - the resulting image is an inverse of the grayscale rainbow above
+img2 = cv2.imread('rainbow.jpg', 0)
+ret1, thresh1 = cv2.threshold(img2, 127, 255, cv2.THRESH_TRUNC)
+plt.imshow(thresh1, cmap = "gray")
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7fe10c5b3dd0>
+
+
+
+
+![output_39_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/c5380ca0-cdc1-4253-bf7e-a1ba2d1171d0)
+
+
+
+
+```python
+#we can combine the first two images to allow for some leniency in the thresholding
+img3 = cv2.imread('rainbow.jpg', 0)
+ret1, thresh1 = cv2.threshold(img3, 127, 255, cv2.THRESH_TOZERO)
+plt.imshow(thresh1, cmap = "gray")
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7fe10c485590>
+
+
+
+
+![output_40_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/6996d91c-62d3-45b1-98b8-0f12ab2a813b)
+
+
+
+
+```python
+#let's apply this to the crossword puzzle
+img_r = cv2.imread('crossword.jpg', 0)
+plt.imshow(img_r, cmap = 'gray')
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7fe10c461e90>
+
+
+
+
+![output_41_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/c5bd0670-fd4e-41ae-967a-fc7a8c292a35)
+
+
+
+
+```python
+#to make things easier, let's create a function to quickly desaturate and resize the image
+def show_pic(img):
+    fig = plt.figure(figsize = (15,15))
+    ax = fig.add_subplot(111)
+    ax.imshow(img, cmap = 'gray')
+```
+
+
+```python
+show_pic(img_r)
+```
+
+
+
+![output_43_0](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/2e0bd72e-ca62-410e-b3c2-adf7546ed1db)
+
+
+
+```python
+#we'll apply a binary threshold
+ret, th1 = cv2.threshold(img_r, 127, 255, cv2.THRESH_BINARY)
+show_pic(th1)
+```
+
+
+
+![output_44_0](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/e9aaf2db-7877-407d-b62a-165769f29c89)
+
+
+
+```python
+#adjust the threshold a bit
+ret, th1 = cv2.threshold(img_r, 200, 255, cv2.THRESH_BINARY)
+show_pic(th1)
+```
+
+
+
+![output_45_0](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/45581884-2af5-43f3-a959-94c3ea4383b8)
+
+
+
+```python
+#alternatively
+th2 = cv2.adaptiveThreshold(img_r, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 8)
+show_pic(th2)
+```
+
+
+
+![output_46_0](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/9ca6fb52-885d-4803-a411-e56df95ff4c7)
+
+
+
+```python
+#now we'll layer the two images to get a clearer picture
+blended = cv2.addWeighted(src1 = th1, alpha = 0.6,
+                         src2 = th2, beta = 0.4, gamma = 0)
+show_pic(blended)
+```
+
+
+
+![output_47_0](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/a0adbbbb-cb06-4e27-9a9c-fdaca5780b26)
+
+
+
+```python
+#alternatively
+th3 = cv2.adaptiveThreshold(img_r, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY, 11, 8)
+
+blended = cv2.addWeighted(src1 = th1, alpha = 0.6,
+                         src2 = th3, beta = 0.4, gamma = 0)
+show_pic(blended)
+```
+
+
+![output_48_0](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/1480148d-bf07-4092-969a-0fe93031810d)
+
+
+
+```python
+
+```
