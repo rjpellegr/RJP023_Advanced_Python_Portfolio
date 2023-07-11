@@ -1980,3 +1980,589 @@ SeqIO.write(records, "rev_comp.fasta", "fasta")
 
 
     18
+
+
+## Multiple Sequence Alignments
+An overview of the Align library.
+
+```python
+#import necessary libraries/functions
+from Bio.Seq import Seq
+from Bio.SeqRecord import SeqRecord
+from Bio import AlignIO
+from Bio.Align import MultipleSeqAlignment
+```
+
+
+```python
+#let's start with a single sequence alignment using a stockholm file for Phage_Coat_Gp8 (PF05371)
+#https://raw.githubusercontent.com/biopython/biopython/master/Doc/examples/PF05371_seed.sth
+alignment = AlignIO.read("PF05371_seed.sth", "stockholm")
+print(alignment)
+```
+
+    Alignment with 7 rows and 52 columns
+    AEPNAATNYATEAMDSLKTQAIDLISQTWPVVTTVVVAGLVIRL...SKA COATB_BPIKE/30-81
+    AEPNAATNYATEAMDSLKTQAIDLISQTWPVVTTVVVAGLVIKL...SRA Q9T0Q8_BPIKE/1-52
+    DGTSTATSYATEAMNSLKTQATDLIDQTWPVVTSVAVAGLAIRL...SKA COATB_BPI22/32-83
+    AEGDDP---AKAAFNSLQASATEYIGYAWAMVVVIVGATIGIKL...SKA COATB_BPM13/24-72
+    AEGDDP---AKAAFDSLQASATEYIGYAWAMVVVIVGATIGIKL...SKA COATB_BPZJ2/1-49
+    AEGDDP---AKAAFDSLQASATEYIGYAWAMVVVIVGATIGIKL...SKA Q9T0Q9_BPFD/1-49
+    FAADDATSQAKAAFDSLTAQATEMSGYAWALVVLVVGATVGIKL...SRA COATB_BPIF1/22-73
+
+
+
+```python
+#as you can see, the sequences are truncated
+#we can format it our own way as follows
+print("Alignment length %i" % alignment.get_alignment_length())
+for record in alignment:
+    print("%s - %s" % (record.seq, record.id))
+```
+
+    Alignment length 52
+    AEPNAATNYATEAMDSLKTQAIDLISQTWPVVTTVVVAGLVIRLFKKFSSKA - COATB_BPIKE/30-81
+    AEPNAATNYATEAMDSLKTQAIDLISQTWPVVTTVVVAGLVIKLFKKFVSRA - Q9T0Q8_BPIKE/1-52
+    DGTSTATSYATEAMNSLKTQATDLIDQTWPVVTSVAVAGLAIRLFKKFSSKA - COATB_BPI22/32-83
+    AEGDDP---AKAAFNSLQASATEYIGYAWAMVVVIVGATIGIKLFKKFTSKA - COATB_BPM13/24-72
+    AEGDDP---AKAAFDSLQASATEYIGYAWAMVVVIVGATIGIKLFKKFASKA - COATB_BPZJ2/1-49
+    AEGDDP---AKAAFDSLQASATEYIGYAWAMVVVIVGATIGIKLFKKFTSKA - Q9T0Q9_BPFD/1-49
+    FAADDATSQAKAAFDSLTAQATEMSGYAWALVVLVVGATVGIKLFKKFVSRA - COATB_BPIF1/22-73
+
+
+
+```python
+#the file also includes some database cross-references to the Protein Data Bank and associated secondary structures
+#we can access them with an iterator
+for record in alignment:
+    if record.dbxrefs:
+        print("%s %s" % (record.id, record.dbxrefs))
+```
+
+    COATB_BPIKE/30-81 ['PDB; 1ifl ; 1-52;']
+    COATB_BPM13/24-72 ['PDB; 2cpb ; 1-49;', 'PDB; 2cps ; 1-49;']
+    Q9T0Q9_BPFD/1-49 ['PDB; 1nh4 A; 1-49;']
+    COATB_BPIF1/22-73 ['PDB; 1ifk ; 1-50;']
+
+
+
+```python
+#we can also look at sequence annotations
+for record in alignment:
+    print(record)
+```
+
+    ID: COATB_BPIKE/30-81
+    Name: COATB_BPIKE
+    Description: COATB_BPIKE/30-81
+    Database cross-references: PDB; 1ifl ; 1-52;
+    Number of features: 0
+    /accession=P03620.1
+    /start=30
+    /end=81
+    Per letter annotation for: secondary_structure
+    Seq('AEPNAATNYATEAMDSLKTQAIDLISQTWPVVTTVVVAGLVIRLFKKFSSKA')
+    ID: Q9T0Q8_BPIKE/1-52
+    Name: Q9T0Q8_BPIKE
+    Description: Q9T0Q8_BPIKE/1-52
+    Number of features: 0
+    /accession=Q9T0Q8.1
+    /start=1
+    /end=52
+    Seq('AEPNAATNYATEAMDSLKTQAIDLISQTWPVVTTVVVAGLVIKLFKKFVSRA')
+    ID: COATB_BPI22/32-83
+    Name: COATB_BPI22
+    Description: COATB_BPI22/32-83
+    Number of features: 0
+    /accession=P15416.1
+    /start=32
+    /end=83
+    Seq('DGTSTATSYATEAMNSLKTQATDLIDQTWPVVTSVAVAGLAIRLFKKFSSKA')
+    ID: COATB_BPM13/24-72
+    Name: COATB_BPM13
+    Description: COATB_BPM13/24-72
+    Database cross-references: PDB; 2cpb ; 1-49;, PDB; 2cps ; 1-49;
+    Number of features: 0
+    /accession=P69541.1
+    /start=24
+    /end=72
+    Per letter annotation for: secondary_structure
+    Seq('AEGDDP---AKAAFNSLQASATEYIGYAWAMVVVIVGATIGIKLFKKFTSKA')
+    ID: COATB_BPZJ2/1-49
+    Name: COATB_BPZJ2
+    Description: COATB_BPZJ2/1-49
+    Number of features: 0
+    /accession=P03618.1
+    /start=1
+    /end=49
+    Seq('AEGDDP---AKAAFDSLQASATEYIGYAWAMVVVIVGATIGIKLFKKFASKA')
+    ID: Q9T0Q9_BPFD/1-49
+    Name: Q9T0Q9_BPFD
+    Description: Q9T0Q9_BPFD/1-49
+    Database cross-references: PDB; 1nh4 A; 1-49;
+    Number of features: 0
+    /accession=Q9T0Q9.1
+    /start=1
+    /end=49
+    Per letter annotation for: secondary_structure
+    Seq('AEGDDP---AKAAFDSLQASATEYIGYAWAMVVVIVGATIGIKLFKKFTSKA')
+    ID: COATB_BPIF1/22-73
+    Name: COATB_BPIF1
+    Description: COATB_BPIF1/22-73
+    Database cross-references: PDB; 1ifk ; 1-50;
+    Number of features: 0
+    /accession=P03619.2
+    /start=22
+    /end=73
+    Per letter annotation for: secondary_structure
+    Seq('FAADDATSQAKAAFDSLTAQATEMSGYAWALVVLVVGATVGIKLFKKFVSRA')
+
+
+
+```python
+#now that we've read an alignment file, let's try writing one
+#we'll start by creating a few MultipleSeqAlignment objects using SeqRecord objects
+align1 = MultipleSeqAlignment(
+    [
+        SeqRecord(Seq("ACTGCTAGCTAG"), id="Alpha"),
+        SeqRecord(Seq("ACT-CTAGCTAG"), id="Beta"),
+        SeqRecord(Seq("ACTGCTAGDTAG"), id="Gamma"),
+    ]
+)
+
+align2 = MultipleSeqAlignment(
+    [
+        SeqRecord(Seq("GTCAGC-AG"), id="Delta"),
+        SeqRecord(Seq("GACAGCTAG"), id="Epsilon"),
+        SeqRecord(Seq("GTCAGCTAG"), id="Zeta"),
+    ]
+)
+
+align3 = MultipleSeqAlignment(
+    [
+        SeqRecord(Seq("ACTAGTACAGCTG"), id="Eta"),
+        SeqRecord(Seq("ACTAGTACAGCT-"), id="Theta"),
+        SeqRecord(Seq("-CTACTACAGGTG"), id="Iota"),
+    ]
+)
+my_alignments = [align1, align2, align3]
+```
+
+
+```python
+#now we can write them into a PHYLIP file
+AlignIO.write(my_alignments, "my_example.phy", "phylip")
+```
+
+
+
+
+    3
+
+
+
+
+```python
+#let's take a look at it
+alignments = AlignIO.parse("my_example.phy", "phylip")
+for alignment in alignments:
+    print(alignment, "\n")
+```
+
+    Alignment with 3 rows and 12 columns
+    ACTGCTAGCTAG Alpha
+    ACT-CTAGCTAG Beta
+    ACTGCTAGDTAG Gamma 
+    
+    Alignment with 3 rows and 9 columns
+    GTCAGC-AG Delta
+    GACAGCTAG Epsilon
+    GTCAGCTAG Zeta 
+    
+    Alignment with 3 rows and 13 columns
+    ACTAGTACAGCTG Eta
+    ACTAGTACAGCT- Theta
+    -CTACTACAGGTG Iota 
+    
+
+
+
+```python
+#we can also look at individual alignments within this file
+#first, we need to convert it into a list
+alignments = list(AlignIO.parse("my_example.phy", "phylip"))
+```
+
+
+```python
+#then we can define and print individual alignments
+first_align = alignments[0]
+print(first_align)
+```
+
+    Alignment with 3 rows and 12 columns
+    ACTGCTAGCTAG Alpha
+    ACT-CTAGCTAG Beta
+    ACTGCTAGDTAG Gamma
+
+
+
+```python
+last_align = alignments[-1]
+print(last_align)
+```
+
+    Alignment with 3 rows and 13 columns
+    ACTAGTACAGCTG Eta
+    ACTAGTACAGCT- Theta
+    -CTACTACAGGTG Iota
+
+
+
+```python
+#we can convert between sequence alignment file formats in the same way we convert between sequence file formats
+#via the convert function
+count = AlignIO.convert("PF05371_seed.sth", "stockholm", "PF05371_seed.aln", "clustal")
+print("Converted %i alignments" % count)
+```
+
+    Converted 1 alignments
+
+
+
+```python
+#or with the parse and write functions
+alignments = AlignIO.parse("PF05371_seed.sth", "stockholm")
+count = AlignIO.write(alignments, "PF05371_seed.aln", "clustal")
+print("Converted %i alignments" % count)
+```
+
+    Converted 1 alignments
+
+
+
+```python
+#the above examples converted a stockholm file to a clustal file
+#let's try converting to PHYLIP instead
+AlignIO.convert("PF05371_seed.sth", "stockholm", "PF05371_seed.phy", "phylip")
+```
+
+
+
+
+    1
+
+
+
+
+```python
+#however, it should be noted that the normal PHYLIP format truncates the sequence identifiers at 10 characters which can inhibit readability
+#we can get around this by using a more relaxed variant instead
+AlignIO.convert("PF05371_seed.sth", "stockholm", "PF05371_seed.phy", "phylip-relaxed")
+```
+
+
+
+
+    1
+
+
+
+
+```python
+#we can manipulate the identifiers, which is useful for if you have to work within the 10 character confines of a normal PHYLIP format sequence
+alignment = AlignIO.read("PF05371_seed.sth", "stockholm")
+name_mapping = {}
+for i, record in enumerate(alignment):
+    name_mapping[i] = record.id
+    record.id = "seq%i" % i
+print(name_mapping)
+```
+
+    {0: 'COATB_BPIKE/30-81', 1: 'Q9T0Q8_BPIKE/1-52', 2: 'COATB_BPI22/32-83', 3: 'COATB_BPM13/24-72', 4: 'COATB_BPZJ2/1-49', 5: 'Q9T0Q9_BPFD/1-49', 6: 'COATB_BPIF1/22-73'}
+
+
+
+```python
+#the above example appends a "seq" identifier to the beginning of each sequence
+AlignIO.write([alignment], "PF05371_seed.phy", "phylip")
+```
+
+
+
+
+    1
+
+
+
+
+```python
+#we can slice alignment sequence objects in a similar manner to slicing sequence or sequence record objects
+#first let's set up our alignment for this example
+alignment = AlignIO.read("PF05371_seed.sth", "stockholm")
+print("Number of rows: %i" % len(alignment))
+for record in alignment:
+    print("%s - %s" % (record.seq, record.id))
+```
+
+    Number of rows: 7
+    AEPNAATNYATEAMDSLKTQAIDLISQTWPVVTTVVVAGLVIRLFKKFSSKA - COATB_BPIKE/30-81
+    AEPNAATNYATEAMDSLKTQAIDLISQTWPVVTTVVVAGLVIKLFKKFVSRA - Q9T0Q8_BPIKE/1-52
+    DGTSTATSYATEAMNSLKTQATDLIDQTWPVVTSVAVAGLAIRLFKKFSSKA - COATB_BPI22/32-83
+    AEGDDP---AKAAFNSLQASATEYIGYAWAMVVVIVGATIGIKLFKKFTSKA - COATB_BPM13/24-72
+    AEGDDP---AKAAFDSLQASATEYIGYAWAMVVVIVGATIGIKLFKKFASKA - COATB_BPZJ2/1-49
+    AEGDDP---AKAAFDSLQASATEYIGYAWAMVVVIVGATIGIKLFKKFTSKA - Q9T0Q9_BPFD/1-49
+    FAADDATSQAKAAFDSLTAQATEMSGYAWALVVLVVGATVGIKLFKKFVSRA - COATB_BPIF1/22-73
+
+
+
+```python
+#then we can slice it
+print(alignment[3:7])
+```
+
+    Alignment with 4 rows and 52 columns
+    AEGDDP---AKAAFNSLQASATEYIGYAWAMVVVIVGATIGIKL...SKA COATB_BPM13/24-72
+    AEGDDP---AKAAFDSLQASATEYIGYAWAMVVVIVGATIGIKL...SKA COATB_BPZJ2/1-49
+    AEGDDP---AKAAFDSLQASATEYIGYAWAMVVVIVGATIGIKL...SKA Q9T0Q9_BPFD/1-49
+    FAADDATSQAKAAFDSLTAQATEMSGYAWALVVLVVGATVGIKL...SRA COATB_BPIF1/22-73
+
+
+
+```python
+#we can select my column using a double index, in like manner to a number matrix in NumPy
+print(alignment[2, 6])
+```
+
+    T
+
+
+
+```python
+#a shorthand version of the above line could be
+print(alignment[2].seq[6])
+```
+
+    T
+
+
+
+```python
+#you can pull a string out of single column
+print(alignment[:, 6])
+```
+
+    TTT---T
+
+
+
+```python
+#you can select a range of columns
+print(alignment[3:6, :6])
+```
+
+    Alignment with 3 rows and 6 columns
+    AEGDDP COATB_BPM13/24-72
+    AEGDDP COATB_BPZJ2/1-49
+    AEGDDP Q9T0Q9_BPFD/1-49
+
+
+
+```python
+#if we leave the first index blank, it will print all the rows
+print(alignment[:, :6])
+```
+
+    Alignment with 7 rows and 6 columns
+    AEPNAA COATB_BPIKE/30-81
+    AEPNAA Q9T0Q8_BPIKE/1-52
+    DGTSTA COATB_BPI22/32-83
+    AEGDDP COATB_BPM13/24-72
+    AEGDDP COATB_BPZJ2/1-49
+    AEGDDP Q9T0Q9_BPFD/1-49
+    FAADDA COATB_BPIF1/22-73
+
+
+
+```python
+#we can use this method to remove a section
+print(alignment[:, 6:9])
+```
+
+    Alignment with 7 rows and 3 columns
+    TNY COATB_BPIKE/30-81
+    TNY Q9T0Q8_BPIKE/1-52
+    TSY COATB_BPI22/32-83
+    --- COATB_BPM13/24-72
+    --- COATB_BPZJ2/1-49
+    --- Q9T0Q9_BPFD/1-49
+    TSQ COATB_BPIF1/22-73
+
+
+
+```python
+#or slice everything after a given column - in this case, the ninth
+print(alignment[:, 9:])
+```
+
+    Alignment with 7 rows and 43 columns
+    ATEAMDSLKTQAIDLISQTWPVVTTVVVAGLVIRLFKKFSSKA COATB_BPIKE/30-81
+    ATEAMDSLKTQAIDLISQTWPVVTTVVVAGLVIKLFKKFVSRA Q9T0Q8_BPIKE/1-52
+    ATEAMNSLKTQATDLIDQTWPVVTSVAVAGLAIRLFKKFSSKA COATB_BPI22/32-83
+    AKAAFNSLQASATEYIGYAWAMVVVIVGATIGIKLFKKFTSKA COATB_BPM13/24-72
+    AKAAFDSLQASATEYIGYAWAMVVVIVGATIGIKLFKKFASKA COATB_BPZJ2/1-49
+    AKAAFDSLQASATEYIGYAWAMVVVIVGATIGIKLFKKFTSKA Q9T0Q9_BPFD/1-49
+    AKAAFDSLTAQATEMSGYAWALVVLVVGATVGIKLFKKFVSRA COATB_BPIF1/22-73
+
+
+
+```python
+#you can add alignment objects together as well - it works column by column
+edited = alignment[:, :6] + alignment[:, 9:]
+print(edited)
+```
+
+    Alignment with 7 rows and 49 columns
+    AEPNAAATEAMDSLKTQAIDLISQTWPVVTTVVVAGLVIRLFKKFSSKA COATB_BPIKE/30-81
+    AEPNAAATEAMDSLKTQAIDLISQTWPVVTTVVVAGLVIKLFKKFVSRA Q9T0Q8_BPIKE/1-52
+    DGTSTAATEAMNSLKTQATDLIDQTWPVVTSVAVAGLAIRLFKKFSSKA COATB_BPI22/32-83
+    AEGDDPAKAAFNSLQASATEYIGYAWAMVVVIVGATIGIKLFKKFTSKA COATB_BPM13/24-72
+    AEGDDPAKAAFDSLQASATEYIGYAWAMVVVIVGATIGIKLFKKFASKA COATB_BPZJ2/1-49
+    AEGDDPAKAAFDSLQASATEYIGYAWAMVVVIVGATIGIKLFKKFTSKA Q9T0Q9_BPFD/1-49
+    FAADDAAKAAFDSLTAQATEMSGYAWALVVLVVGATVGIKLFKKFVSRA COATB_BPIF1/22-73
+
+
+
+```python
+#you can also use this to combine alignments from several different genes, so long as the identifiers line up
+#sorting the alignment rows alphabetically helps with this
+edited.sort()
+print(edited)
+```
+
+    Alignment with 7 rows and 49 columns
+    DGTSTAATEAMNSLKTQATDLIDQTWPVVTSVAVAGLAIRLFKKFSSKA COATB_BPI22/32-83
+    FAADDAAKAAFDSLTAQATEMSGYAWALVVLVVGATVGIKLFKKFVSRA COATB_BPIF1/22-73
+    AEPNAAATEAMDSLKTQAIDLISQTWPVVTTVVVAGLVIRLFKKFSSKA COATB_BPIKE/30-81
+    AEGDDPAKAAFNSLQASATEYIGYAWAMVVVIVGATIGIKLFKKFTSKA COATB_BPM13/24-72
+    AEGDDPAKAAFDSLQASATEYIGYAWAMVVVIVGATIGIKLFKKFASKA COATB_BPZJ2/1-49
+    AEPNAAATEAMDSLKTQAIDLISQTWPVVTTVVVAGLVIKLFKKFVSRA Q9T0Q8_BPIKE/1-52
+    AEGDDPAKAAFDSLQASATEYIGYAWAMVVVIVGATIGIKLFKKFTSKA Q9T0Q9_BPFD/1-49
+
+
+
+```python
+#the substitutions property reports how often letters in the alignment are substituted for one another
+alignment = MultipleSeqAlignment(
+    [
+        SeqRecord(Seq("ACTCCTA"), id="seq1"),
+        SeqRecord(Seq("AAT-CTA"), id="seq2"),
+        SeqRecord(Seq("CCTACT-"), id="seq3"),
+        SeqRecord(Seq("TCTCCTC"), id="seq4"),
+    ]
+)
+print(alignment)
+```
+
+    Alignment with 4 rows and 7 columns
+    ACTCCTA seq1
+    AAT-CTA seq2
+    CCTACT- seq3
+    TCTCCTC seq4
+
+
+
+```python
+substitutions = alignment.substitutions
+print(substitutions)
+```
+
+        A    C    T
+    A 2.0  4.5  1.0
+    C 4.5 10.0  0.5
+    T 1.0  0.5 12.0
+    
+
+
+
+```python
+#you can use the select method to add missing letters and change the order
+m = substitutions.select("ATCG")
+print(m)
+```
+
+        A    T    C   G
+    A 2.0  1.0  4.5 0.0
+    T 1.0 12.0  0.5 0.0
+    C 4.5  0.5 10.0 0.0
+    G 0.0  0.0  0.0 0.0
+    
+
+
+
+```python
+#the actual order of the pairs is completely arbitrary
+m = substitutions.select("ACTG")
+print(m)
+```
+
+        A    C    T   G
+    A 2.0  4.5  1.0 0.0
+    C 4.5 10.0  0.5 0.0
+    T 1.0  0.5 12.0 0.0
+    G 0.0  0.0  0.0 0.0
+    
+
+
+
+```python
+#ClustalW is a tool for running multiple sequence alignments from the command line
+from Bio.Align.Applications import ClustalwCommandline
+cline = ClustalwCommandline("clustalw2", infile="opuntia.fasta")
+print(cline)
+```
+
+    clustalw2 -infile=opuntia.fasta
+
+
+
+```python
+#let's try it out with these example files
+#https://raw.githubusercontent.com/biopython/biopython/master/Doc/examples/opuntia.aln
+#https://raw.githubusercontent.com/biopython/biopython/master/Doc/examples/opuntia.dnd
+align = AlignIO.read("opuntia.aln", "clustal")
+print(align)
+```
+
+    Alignment with 7 rows and 906 columns
+    TATACATTAAAGAAGGGGGATGCGGATAAATGGAAAGGCGAAAG...AGA gi|6273285|gb|AF191659.1|AF191
+    TATACATTAAAGAAGGGGGATGCGGATAAATGGAAAGGCGAAAG...AGA gi|6273284|gb|AF191658.1|AF191
+    TATACATTAAAGAAGGGGGATGCGGATAAATGGAAAGGCGAAAG...AGA gi|6273287|gb|AF191661.1|AF191
+    TATACATAAAAGAAGGGGGATGCGGATAAATGGAAAGGCGAAAG...AGA gi|6273286|gb|AF191660.1|AF191
+    TATACATTAAAGGAGGGGGATGCGGATAAATGGAAAGGCGAAAG...AGA gi|6273290|gb|AF191664.1|AF191
+    TATACATTAAAGGAGGGGGATGCGGATAAATGGAAAGGCGAAAG...AGA gi|6273289|gb|AF191663.1|AF191
+    TATACATTAAAGGAGGGGGATGCGGATAAATGGAAAGGCGAAAG...AGA gi|6273291|gb|AF191665.1|AF191
+
+
+
+```python
+#we can also generate phylogenetic trees
+from Bio import Phylo
+tree = Phylo.read("opuntia.dnd", "newick")
+Phylo.draw_ascii(tree)
+```
+
+                                 _______________ gi|6273291|gb|AF191665.1|AF191665
+      __________________________|
+     |                          |   ______ gi|6273290|gb|AF191664.1|AF191664
+     |                          |__|
+     |                             |_____ gi|6273289|gb|AF191663.1|AF191663
+     |
+    _|_________________ gi|6273287|gb|AF191661.1|AF191661
+     |
+     |__________ gi|6273286|gb|AF191660.1|AF191660
+     |
+     |    __ gi|6273285|gb|AF191659.1|AF191659
+     |___|
+         | gi|6273284|gb|AF191658.1|AF191658
+    
