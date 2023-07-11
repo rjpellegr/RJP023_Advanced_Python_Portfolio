@@ -3838,3 +3838,332 @@ show_pic(blended)
 ```python
 
 ```
+
+
+## Aspect Detection
+An introduction to the OpenCV suite's corner and edge detection functionalities.
+
+```python
+#import necessary libraries/functions
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+%matplotlib inline
+```
+
+
+```python
+#first we import and color correct the images we're using
+#https://commons.wikimedia.org/wiki/File:Chessboard_green_squares.svg
+flat_chess = cv2.imread('chessboard_green.png')
+flat_chess = cv2.cvtColor(flat_chess, cv2.COLOR_BGR2RGB)
+plt.imshow(flat_chess)
+#and desaturate it
+gray_flat_chess =cv2.cvtColor(flat_chess, cv2.COLOR_BGR2GRAY)
+plt.imshow(gray_flat_chess, cmap = "gray")
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7f2cf4557290>
+
+
+
+![output_1_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/d787d96f-8844-4f15-8407-c6f7ebd73663)
+
+
+
+
+```python
+#https://commons.wikimedia.org/wiki/File:Chess_board_opening_staunton.jpg
+real_chess = cv2.imread("chessboard.jpg")
+real_chess = cv2.cvtColor(real_chess, cv2.COLOR_BGR2RGB)
+plt.imshow(real_chess)
+#and desaturate it
+gray_real_chess =cv2.cvtColor(real_chess, cv2.COLOR_BGR2GRAY)
+plt.imshow(gray_real_chess, cmap = "gray")
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7f2cf2472150>
+
+
+
+![output_2_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/03fd71b9-d418-4c45-8f12-90a0b00b12f5)
+
+
+
+
+```python
+#we'll be using an operator called Harris corner detector for this example
+#dst represents our distribution - this variable essentially checks for differences in neighboring color values
+gray = np.float32(gray_flat_chess)
+dst = cv2.cornerHarris(src = gray, blockSize = 2, ksize = 3, k = 0.04)
+dst = cv2.dilate(dst, None)
+```
+
+
+```python
+#when the operator returns a value greater than 0.01, the corner will be highlighted in red
+flat_chess[dst>0.01*dst.max()] = [255,0,0]
+plt.imshow(flat_chess)
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7f2cf0bea550>
+
+
+
+![output_4_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/e1714cdb-c095-4bcc-b8e4-9cae93003292)
+
+
+
+
+```python
+#let's try it on the other image
+gray = np.float32(gray_real_chess)
+dst = cv2.cornerHarris(src = gray, blockSize = 2, ksize = 3, k = 0.04)
+dst = cv2.dilate(dst, None)
+```
+
+
+```python
+#the operator does a good job of marking the chessboard itself, but the chess pieces result in a lot of noise that also gets picked up
+real_chess[dst>0.01*dst.max()] = [255,0,0]
+plt.imshow(real_chess)
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7f2cf0b52650>
+
+
+
+
+![output_6_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/41f96449-0ac4-4864-91e0-1cd822eaf74c)
+
+
+
+
+```python
+#let's use another method - the Shi-Tomasi corner detector
+#this operator essentially looks at each portion of the image in small segments, searching for significant changes in line direction
+corners = cv2.goodFeaturesToTrack(gray_flat_chess, 64, 0.01, 10)
+corners = np.int0(corners)
+for i in corners:
+    x,y = i.ravel()
+    cv2.circle(flat_chess, (x,y), 3, (255,0,0), -1)
+plt.imshow(flat_chess)
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7f2cf0b40fd0>
+
+
+
+
+![output_7_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/fe19f17b-cfae-461a-af5f-5771a3d4a8f5)
+
+
+
+
+```python
+#let's try it on the other image
+#the points where the Harris and Shi-Tomasu detector overlap each other are shown in green
+#the operator doesn't pick up as much noise from the pieces as the Harris detector, but also isn't as accurate at finding the actual chessboard squares
+corners = cv2.goodFeaturesToTrack(gray_real_chess, 100, 0.01, 10)
+corners = np.int0(corners)
+for i in corners:
+    x,y = i.ravel()
+    cv2.circle(real_chess, (x,y), 3, (0,255,0), -1)
+plt.imshow(real_chess)
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7f2cf0ab20d0>
+
+
+
+
+![output_8_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/29bd619b-d8ba-4d71-9139-baab9a370ff0)
+
+
+
+
+```python
+#let's try edge detection
+#there's no need to color correct here
+img = cv2.imread("deeprock.jpg")
+plt.imshow(img)
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7f2cf0a1bb90>
+
+
+
+
+![output_9_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/fb6b5e40-08b8-4039-a4f9-7ec40f52fe47)
+
+
+
+
+```python
+#we'll use the Canny edge detector
+edges = cv2.Canny(image = img, threshold1 = 127, threshold2 = 127)
+plt.imshow(edges)
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7f2cf09ffe10>
+
+
+
+
+![output_10_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/3cb78bc4-f571-4267-9f0d-b7415abfb41d)
+
+
+
+
+```python
+#pretty good, but it can be improved
+#first let's find the median color value and use them to set the upper and lower thresholds
+med_value = np.median(img)
+lower = int(max(0, 0.7*med_value))
+upper = int(min(255, 1.3*med_value))
+edges = cv2.Canny(img, threshold1 = lower, threshold2 = upper)
+plt.imshow(edges)
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7f2cf096f690>
+
+
+
+
+![output_11_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/9228a076-4bb3-4454-8d36-ec9fa0bb8426)
+
+
+
+
+```python
+#let's fine-tune them some more
+edges = cv2.Canny(img, threshold1 = lower, threshold2 = upper + 100)
+plt.imshow(edges)
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7f2cf094af50>
+
+
+
+
+![output_12_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/0e0bcf3a-b3d5-423f-b15a-a07db026ee6f)
+
+
+
+
+```python
+#we can add a blur to the image and then run that through Canny edge detection for better results
+blurred_img = cv2.blur(img, ksize = (5,5))
+edges = cv2.Canny(image = blurred_img, 
+                  threshold1 = lower,
+                  threshold2 = upper)
+plt.imshow(edges)
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7f2cf08b6310>
+
+
+
+
+![output_13_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/dc3e2304-3086-47f1-abca-b2fb656c36e5)
+
+
+
+
+```python
+#we can increase the ksize
+blurred_img = cv2.blur(img, ksize = (7,7))
+edges = cv2.Canny(image = blurred_img, 
+                  threshold1 = lower,
+                  threshold2 = upper)
+plt.imshow(edges)
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7f2cf0816450>
+
+
+
+
+![output_14_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/0699ae83-eaf9-4dde-ac7d-5d23d6ee186c)
+
+
+
+
+```python
+#almost there - let's increase the upper threshold limit further
+blurred_img = cv2.blur(img, ksize = (5,5))
+edges = cv2.Canny(image = blurred_img, 
+                  threshold1 = lower,
+                  threshold2 = upper + 50)
+plt.imshow(edges)
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7f2cf07fe610>
+
+
+
+
+![output_15_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/cc4b11ac-402b-4170-be46-b50e59629817)
+
+
+
+
+```python
+#increase both the ksize and the upper limit
+#7,7 and +15, respectively, seem to be the sweet spots for maximum readability
+blurred_img = cv2.blur(img, ksize = (7,7))
+edges = cv2.Canny(image = blurred_img, 
+                  threshold1 = lower,
+                  threshold2 = upper + 15)
+plt.imshow(edges)
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7f2cf0765710>
+
+
+
+![output_16_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/840261de-14fc-4ed2-a965-fb287d13bb57)
+
+
