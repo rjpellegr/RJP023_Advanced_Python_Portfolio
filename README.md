@@ -4167,3 +4167,329 @@ plt.imshow(edges)
 ![output_16_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/840261de-14fc-4ed2-a965-fb287d13bb57)
 
 
+## Feature Detection
+Finally, a look at the feature detection... features, I guess... of OpenCV.
+
+```python
+#import necessary libraries/functions
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt
+%matplotlib inline
+```
+
+
+```python
+#feature matching is one method of finding a smaller image or object within a larger one
+#before we can display images, we need to define their parameters
+def display(img, cmap = 'gray'):
+    fig = plt.figure(figsize = (12, 10))
+    ax = fig.add_subplot(111)
+    ax.imshow(img, cmap = 'gray')
+```
+
+
+```python
+#then we can import our small image
+apple_jacks = cv2.imread('applejacks.jpg',0)
+display(apple_jacks)
+```
+
+
+
+![output_2_0](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/5703430d-9cb3-4681-954d-e6e9dc6c2c3b)
+
+
+
+```python
+#and our large image
+cereals = cv2.imread('all_cereal.jpg', 0)
+display(cereals)
+```
+
+
+
+![output_3_0](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/74a15138-e7a0-4cd5-9f76-1888d2ee9306)
+
+
+
+```python
+#we'll start with brute force matching, which takes a descriptor of one feature in a set and matches them with all the features of a second set
+#to find descriptors, we'll use ORB
+orb = cv2.ORB_create()
+kp1, des1 = orb.detectAndCompute(apple_jacks, mask = None)
+kp2, des2 = orb.detectAndCompute(cereals, mask = None)
+```
+
+
+```python
+#now we can match and sort the descriptors between the two images
+bf = cv2.BFMatcher(cv2.NORM_HAMMING, crossCheck = True)
+matches = bf.match(des1, des2)
+matches = sorted(matches, key = lambda x:x.distance)
+```
+
+
+```python
+#and then display them - it's not the best
+apple_jacks_matches = cv2.drawMatches(apple_jacks, kp1, cereals, kp2, matches[:25], None, flags = 2)
+display(apple_jacks_matches)
+```
+
+
+
+![output_6_0](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/a7f4d069-2308-4d8a-ba75-8a5629a6dd4c)
+
+
+
+```python
+#let's try SIFT matching, which picks out key identifying features that can be seen regardless of image scale or orientation
+sift = cv2.SIFT_create()
+kp1, des1 = sift.detectAndCompute(apple_jacks, None)
+kp2, des2 = sift.detectAndCompute(cereals, None)
+bf = cv2.BFMatcher()
+matches = bf.knnMatch(des1, des2, k = 2)
+```
+
+
+```python
+#we'll append the good matches to a list as we iterate through them
+good = []
+for match1, match2 in matches:
+    if match1.distance < 0.75*match2.distance:
+        good.append([match1])
+print('Length of total matches:', len(matches))
+print('Length of good matches:', len(good))
+```
+
+    Length of total matches: 1644
+    Length of good matches: 40
+
+
+
+```python
+#then we'll display it - this one is much more accurate
+sift_matches = cv2.drawMatchesKnn(apple_jacks, kp1, cereals, kp2, good, None, flags = 2)
+display(sift_matches)
+```
+
+
+
+![output_9_0](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/a63a3597-dd2a-4aee-b255-6718c78ae0f0)
+
+
+
+```python
+#we can introduce a flann index to make things faster
+#flann-based matching trades accuracy for speed
+sift = cv2.SIFT_create()
+kp1, des1 = sift.detectAndCompute(apple_jacks, None)
+kp2, des2 = sift.detectAndCompute(cereals, None)
+flann_index_KDtree = 0
+index_params = dict(algorithm = flann_index_KDtree, trees = 5)
+search_params = dict(checks = 50)
+flann = cv2.FlannBasedMatcher(index_params, search_params)
+matches = flann.knnMatch(des1, des2, k=2)
+good = []
+for match1, match2, in matches:
+    if match1.distance < 0.75*match2.distance:
+        good.append([match1])
+flann_matches = cv2.drawMatchesKnn(apple_jacks, kp1, cereals, kp2, good, None, flags = 0)
+display(flann_matches)
+```
+
+
+
+![output_10_0](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/34bc8d79-fea5-4063-b2be-61512aebe510)
+
+
+
+```python
+#let's add a mask to the image to make it more readable
+#first we set it up as before
+sift = cv2.SIFT_create()
+kp1, des1 = sift.detectAndCompute(apple_jacks, None)
+kp2, des2 = sift.detectAndCompute(cereals, None)
+flann_index_KDtree = 0
+index_params = dict(algorithm = flann_index_KDtree, trees = 5)
+search_param = dict(checks = 50)
+flann = cv2.FlannBasedMatcher(index_params, search_param)
+matches = flann.knnMatch(des1, des2, k=2)
+```
+
+
+```python
+#then we add the mask
+#the red parts indicate the key features that were identified
+#the green lines indicate matches
+matchesMask = [[0,0] for i in range(len(matches))]
+for i, (match1, match2) in enumerate(matches):
+    if match1.distance < 0.75*match2.distance:
+        matchesMask[i] = [1,0]        
+draw_params = dict(matchColor = (0, 255, 0),
+                  singlePointColor = (255, 0, 0),
+                  matchesMask = matchesMask,
+                  flags = 0)
+flann_matches = cv2.drawMatchesKnn(apple_jacks, kp1, cereals, kp2, matches, None, **draw_params)
+display(flann_matches)
+```
+
+
+
+![output_12_0](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/a4b6e8d0-a411-4177-9f57-48ab13be5eee)
+
+
+
+```python
+#now let's move on to object detection - a useful tool when phenotyping
+#we'll need a training image and a testing image
+#first we import and color correct our training image
+full = cv2.imread('Sunflower_Training.jpg')
+full = cv2.cvtColor(full, cv2.COLOR_BGR2RGB)
+plt.imshow(full)
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7fd30005e610>
+
+
+
+![output_13_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/2156f3b2-fa48-45f3-8258-db292d9d20a6)
+
+
+
+```python
+#and then our testing image
+test = cv2.imread('Sunflower_Testing.jpg')
+test = cv2.cvtColor(test, cv2.COLOR_BGR2RGB)
+plt.imshow(test)
+```
+
+
+
+
+    <matplotlib.image.AxesImage at 0x7fd30003b710>
+
+
+
+
+![output_14_1](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/f4e40c85-b046-4f0b-8b81-ffe4677e3527)
+
+
+
+
+```python
+#let's check the resolutions
+print('Test image shape:', full.shape)
+print('Training image shape:', test.shape)
+```
+
+    Test image shape: (600, 600, 3)
+    Training image shape: (667, 1186, 3)
+
+
+
+```python
+#there are different methods for object detection
+#we'll save all the ones we're going to test into a list so we can iterate through it
+methods = ['cv2.TM_CCOEFF', 'cv2.TM_CCOEFF_NORMED', 'cv2.TM_CCORR', 'cv2.TM_CCORR_NORMED', 'cv2.TM_SQDIFF', 'cv2.TM_SQDIFF_NORMED']
+```
+
+
+```python
+#then we construct our iterator
+for m in methods:
+    
+    test_copy = test.copy()
+    method = eval(m)
+    
+    res = cv2.matchTemplate(test_copy, full, method)
+    
+    min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+    
+    if method in [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]:
+        top_left = min_loc
+    else:
+        top_left = max_loc
+       
+    height, width, channels = full.shape
+    bottom_right = (top_left[0] + width, top_left[1] + height)
+    
+    cv2.rectangle(test_copy, top_left, bottom_right, (255, 0, 0), 10)
+    
+    plt.subplot(121)
+    plt.imshow(res)
+    plt.title("Heatmap of template matching")
+    plt.subplot(122)
+    plt.imshow(test_copy)
+    plt.title("Detection of template")
+    
+    plt.suptitle(m)
+    
+    plt.show()
+    print('\n')
+    print('\n')
+```
+
+
+
+![output_17_0](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/18e8576d-3720-4887-91c5-6b9fc7b0d965)
+
+
+    
+    
+    
+    
+
+
+![output_17_2](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/94a292e9-e2f7-4938-a9b1-0d0a49343f35)
+
+
+
+
+    
+    
+    
+    
+
+
+
+![output_17_4](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/95f17dde-e676-4c35-a92f-4c373d546253)
+
+
+
+    
+    
+    
+    
+
+
+
+
+
+![output_17_6](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/e52728fe-b5d9-4fa6-b794-20c9a72cd52d)
+
+    
+    
+    
+    
+
+
+
+
+![output_17_8](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/9a910052-7b63-4d67-9eee-c66426970715)
+
+
+    
+    
+    
+    
+
+
+
+![output_17_10](https://github.com/rjpellegr/RJP023_Advanced_Python_Portfolio/assets/134185456/d81a90b5-7834-4fc3-834c-17ac81db5e22)
+
+
+    
